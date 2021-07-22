@@ -1,21 +1,25 @@
 package com.udacity.locationreminder.locationreminders.savereminder.selectreminderlocation
 
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.*
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.udacity.locationreminder.R
 import com.udacity.locationreminder.base.BaseFragment
 import com.udacity.locationreminder.databinding.FragmentSelectLocationBinding
 import com.udacity.locationreminder.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.locationreminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+
+private const val REQUEST_LOCATION_PERMISSION = 1
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -73,10 +77,44 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
+        enableMyLocation()
 //        TODO: add the map setup implementation
-//        TODO: zoom to the user location after taking his permission
 //        TODO: add style to the map
 //        TODO: put a marker to location that the user selected
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        // Check if location permissions are granted and if so enable the
+        // location data layer.
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                enableMyLocation()
+            }
+        }
+    }
+
+    private fun isPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun enableMyLocation() {
+        if (isPermissionGranted()) {
+            map.isMyLocationEnabled = true
+        } else {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
+            )
+        }
     }
 
     private fun onLocationSelected() {
