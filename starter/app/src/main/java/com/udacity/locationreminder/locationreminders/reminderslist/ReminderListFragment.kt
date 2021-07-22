@@ -3,6 +3,7 @@ package com.udacity.locationreminder.locationreminders.reminderslist
 import android.os.Bundle
 import android.view.*
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.fragment.findNavController
 import com.udacity.locationreminder.R
 import com.udacity.locationreminder.base.BaseFragment
 import com.udacity.locationreminder.base.NavigationCommand
@@ -62,6 +63,7 @@ class ReminderListFragment : BaseFragment() {
 
     private fun setupRecyclerView() {
         val adapter = RemindersListAdapter {
+            findNavController().navigate(ReminderListFragmentDirections.toReminderDescription())
         }
 
 //        setup the recycler view using the extension function
