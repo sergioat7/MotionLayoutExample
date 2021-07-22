@@ -85,8 +85,10 @@ class SaveReminderFragment : BaseFragment() {
                 longitude
             )
 
-            addGeofenceForReminder(reminder)
-            _viewModel.validateAndSaveReminder(reminder)
+            if (_viewModel.validateEnteredData(reminder)) {
+                _viewModel.saveReminder(reminder)
+                addGeofenceForReminder(reminder)
+            }
         }
     }
 
