@@ -132,6 +132,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun onLocationSelected() {
 
         _viewModel.selectedPOI.value = selectedPoi
-        findNavController().popBackStack()
+        if (selectedPoi != null) {
+            findNavController().popBackStack()
+        } else {
+            _viewModel.showSnackBarInt.value = R.string.err_select_location
+        }
     }
 }

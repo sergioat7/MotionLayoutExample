@@ -33,11 +33,6 @@ class RemindersActivity : AppCompatActivity() {
     private val runningQOrLater =
         android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
-    companion object {
-        internal const val ACTION_GEOFENCE_EVENT =
-            "RemindersActivity.remindTodo.action.ACTION_GEOFENCE_EVENT"
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_reminders)
@@ -158,11 +153,6 @@ class RemindersActivity : AppCompatActivity() {
                 ).setAction(android.R.string.ok) {
                     checkDeviceLocationSettingsAndStartGeofence()
                 }.show()
-            }
-        }
-        locationSettingsResponseTask.addOnCompleteListener {
-            if (it.isSuccessful) {
-                //TODO: add geofence
             }
         }
     }
