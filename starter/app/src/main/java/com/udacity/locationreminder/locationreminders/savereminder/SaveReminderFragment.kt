@@ -52,9 +52,9 @@ class SaveReminderFragment : BaseFragment() {
         binding.viewModel = _viewModel
 
         _viewModel.selectedPOI.observe(viewLifecycleOwner, {
-            _viewModel.reminderSelectedLocationStr.value = it.name
-            _viewModel.latitude.value = it.latLng.latitude
-            _viewModel.longitude.value = it.latLng.longitude
+            _viewModel.reminderSelectedLocationStr.value = it?.name
+            _viewModel.latitude.value = it?.latLng?.latitude
+            _viewModel.longitude.value = it?.latLng?.longitude
         })
 
         geofencingClient = LocationServices.getGeofencingClient(requireActivity())
