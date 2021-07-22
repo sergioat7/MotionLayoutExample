@@ -9,9 +9,12 @@ import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.locationreminder.R
 import com.udacity.locationreminder.base.BaseFragment
 import com.udacity.locationreminder.databinding.FragmentSelectLocationBinding
@@ -27,6 +30,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
+    private var selectedPoi: PointOfInterest? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -42,7 +46,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
-        
+
         binding.buttonSave.setOnClickListener {
             onLocationSelected()
         }
@@ -77,10 +81,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
+        map.setOnPoiClickListener { poi ->
+            val poiMarker = map.addMarker(
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
+            )
+            poiMarker.showInfoWindow()
+            selectedPoi = poi
+        }
+
         enableMyLocation()
-//        TODO: add the map setup implementation
 //        TODO: add style to the map
-//        TODO: put a marker to location that the user selected
     }
 
     override fun onRequestPermissionsResult(
@@ -118,8 +130,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun onLocationSelected() {
-        //        TODO: When the user confirms on the selected location,
-        //         send back the selected location details to the view model
-        //         and navigate back to the previous fragment to save the reminder and add the geofence
+
+        _viewModel.selectedPOI.value = selectedPoi
+        findNavController().popBackStack()
     }
 }
