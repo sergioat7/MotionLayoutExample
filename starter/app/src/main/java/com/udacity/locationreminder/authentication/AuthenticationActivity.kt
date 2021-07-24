@@ -11,6 +11,7 @@ import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
 import com.udacity.locationreminder.R
 import com.udacity.locationreminder.databinding.ActivityAuthenticationBinding
+import com.udacity.locationreminder.locationreminders.RemindersActivity
 
 /**
  * This class should be the starting point of the app, It asks the users to sign in / register, and redirects the
@@ -31,16 +32,22 @@ class AuthenticationActivity : AppCompatActivity() {
             R.layout.activity_authentication
         )
 
-        if (FirebaseAuth.getInstance().currentUser != null) {
-//          TODO: If the user was authenticated, send him to RemindersActivity
-        }
-
         binding.buttonLogin.setOnClickListener {
             launchSignInFlow()
         }
 
 //          TODO: a bonus is to customize the sign in flow to look nice using :
         //https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (FirebaseAuth.getInstance().currentUser != null) {
+            val intent = Intent(this, RemindersActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

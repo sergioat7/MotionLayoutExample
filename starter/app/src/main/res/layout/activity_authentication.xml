@@ -9,11 +9,15 @@
         tools:context=".authentication.AuthenticationActivity">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_normal"
+            android:layout_marginRight="@dimen/margin_normal"
             android:text="@string/welcome_to_the_location_reminder_app"
             android:textColor="@color/black"
             android:textSize="@dimen/text_size_large"
+            android:textAlignment="center"
+            android:gravity="center_horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
