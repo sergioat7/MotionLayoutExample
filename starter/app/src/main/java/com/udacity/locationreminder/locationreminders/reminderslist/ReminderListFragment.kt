@@ -75,7 +75,9 @@ class ReminderListFragment : BaseFragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+
             R.id.logout -> {
+                _viewModel.deleteAllReminders()
                 FirebaseAuth.getInstance().signOut()
                 val intent = Intent(context, AuthenticationActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

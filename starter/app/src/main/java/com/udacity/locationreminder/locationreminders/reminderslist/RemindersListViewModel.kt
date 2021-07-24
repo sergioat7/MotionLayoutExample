@@ -7,6 +7,7 @@ import com.udacity.locationreminder.base.BaseViewModel
 import com.udacity.locationreminder.locationreminders.data.ReminderDataSource
 import com.udacity.locationreminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.locationreminder.locationreminders.data.dto.Result
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class RemindersListViewModel(
@@ -48,6 +49,13 @@ class RemindersListViewModel(
 
             //check if no data has to be shown
             invalidateShowNoData()
+        }
+    }
+
+    fun deleteAllReminders() {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataSource.deleteAllReminders()
+            //TODO: remove geofences
         }
     }
 
