@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.firebase.ui.auth.AuthMethodPickerLayout
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
@@ -80,6 +81,11 @@ class AuthenticationActivity : AppCompatActivity() {
             // sign in.
         )
 
+        val customLayout = AuthMethodPickerLayout.Builder(R.layout.login_background)
+            .setGoogleButtonId(R.id.button_google)
+            .setEmailButtonId(R.id.button_email)
+            .build()
+
         // Create and launch sign-in intent.
         // We listen to the response of this activity with the
         // SIGN_IN_REQUEST_CODE
@@ -87,6 +93,7 @@ class AuthenticationActivity : AppCompatActivity() {
             AuthUI.getInstance()
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers)
+                .setAuthMethodPickerLayout(customLayout)
                 .build(),
             SIGN_IN_REQUEST_CODE
         )
