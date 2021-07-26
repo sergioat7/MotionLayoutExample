@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.locationreminder.R
@@ -87,12 +88,24 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .position(poi.latLng)
                     .title(poi.name)
             )
-            poiMarker.showInfoWindow()
+            poiMarker?.showInfoWindow()
             selectedPoi = poi
         }
 
         enableMyLocation()
-//        TODO: add style to the map
+
+        try {
+            // Customize the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            map.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(),
+                    R.raw.map_style
+                )
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onRequestPermissionsResult(
