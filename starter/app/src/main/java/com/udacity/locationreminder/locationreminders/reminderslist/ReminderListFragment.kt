@@ -3,6 +3,7 @@ package com.udacity.locationreminder.locationreminders.reminderslist
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
@@ -11,6 +12,7 @@ import com.udacity.locationreminder.authentication.AuthenticationActivity
 import com.udacity.locationreminder.base.BaseFragment
 import com.udacity.locationreminder.base.NavigationCommand
 import com.udacity.locationreminder.databinding.FragmentRemindersBinding
+import com.udacity.locationreminder.locationreminders.ReminderDescriptionActivity
 import com.udacity.locationreminder.utils.setDisplayHomeAsUpEnabled
 import com.udacity.locationreminder.utils.setTitle
 import com.udacity.locationreminder.utils.setup
@@ -66,7 +68,8 @@ class ReminderListFragment : BaseFragment() {
 
     private fun setupRecyclerView() {
         val adapter = RemindersListAdapter {
-            findNavController().navigate(ReminderListFragmentDirections.toReminderDescription())
+            val bundle = bundleOf(ReminderDescriptionActivity.EXTRA_ReminderDataItem to it)
+            findNavController().navigate(R.id.to_reminder_description, bundle)
         }
 
 //        setup the recycler view using the extension function
