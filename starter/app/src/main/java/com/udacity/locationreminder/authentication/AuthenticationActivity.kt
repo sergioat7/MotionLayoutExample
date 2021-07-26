@@ -36,9 +36,6 @@ class AuthenticationActivity : AppCompatActivity() {
         binding.buttonLogin.setOnClickListener {
             launchSignInFlow()
         }
-
-//          TODO: a bonus is to customize the sign in flow to look nice using :
-        //https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout
     }
 
     override fun onResume() {
