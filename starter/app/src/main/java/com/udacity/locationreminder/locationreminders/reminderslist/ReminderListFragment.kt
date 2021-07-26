@@ -12,7 +12,7 @@ import com.udacity.locationreminder.authentication.AuthenticationActivity
 import com.udacity.locationreminder.base.BaseFragment
 import com.udacity.locationreminder.base.NavigationCommand
 import com.udacity.locationreminder.databinding.FragmentRemindersBinding
-import com.udacity.locationreminder.locationreminders.ReminderDescriptionActivity
+import com.udacity.locationreminder.locationreminders.reminderdescription.ReminderDescriptionActivity
 import com.udacity.locationreminder.utils.setDisplayHomeAsUpEnabled
 import com.udacity.locationreminder.utils.setTitle
 import com.udacity.locationreminder.utils.setup

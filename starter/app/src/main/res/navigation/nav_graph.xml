@@ -36,7 +36,7 @@
         android:label="Select Location" />
     <activity
         android:id="@+id/reminderDescriptionActivity"
-        android:name="com.udacity.locationreminder.locationreminders.ReminderDescriptionActivity"
+        android:name="com.udacity.locationreminder.locationreminders.reminderdescription.ReminderDescriptionActivity"
         android:label="ReminderDescriptionActivity" />
 
 </navigation>

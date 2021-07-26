@@ -1,4 +1,4 @@
-package com.udacity.locationreminder.locationreminders
+package com.udacity.locationreminder.locationreminders.reminderdescription
 
 import android.content.Context
 import android.content.Intent
@@ -8,6 +8,7 @@ import androidx.databinding.DataBindingUtil
 import com.udacity.locationreminder.R
 import com.udacity.locationreminder.databinding.ActivityReminderDescriptionBinding
 import com.udacity.locationreminder.locationreminders.reminderslist.ReminderDataItem
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
  * Activity that displays the reminder details after the user clicks on the notification
@@ -25,6 +26,8 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         }
     }
 
+    //use Koin to retrieve the ViewModel instance
+    private val _viewModel: ReminderDescriptionViewModel by viewModel()
     private lateinit var binding: ActivityReminderDescriptionBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,9 +35,13 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             this,
             R.layout.activity_reminder_description
         )
-        binding.reminderDataItem = intent.extras?.get(EXTRA_ReminderDataItem) as? ReminderDataItem
-        binding.buttonDelete.setOnClickListener {
-            //TODO: delete reminder
+        (intent.extras?.get(EXTRA_ReminderDataItem) as? ReminderDataItem)?.let { reminder ->
+            binding.reminderDataItem = reminder
+            binding.buttonDelete.setOnClickListener {
+                _viewModel.deleteReminder(reminder.id)
+                //TODO: delete geofence
+                finish()
+            }
         }
     }
 }
