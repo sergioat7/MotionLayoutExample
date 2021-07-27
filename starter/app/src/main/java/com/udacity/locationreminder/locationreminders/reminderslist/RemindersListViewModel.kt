@@ -55,7 +55,6 @@ class RemindersListViewModel(
     fun deleteAllReminders() {
         viewModelScope.launch(Dispatchers.IO) {
             dataSource.deleteAllReminders()
-            //TODO: remove geofences
         }
     }
 

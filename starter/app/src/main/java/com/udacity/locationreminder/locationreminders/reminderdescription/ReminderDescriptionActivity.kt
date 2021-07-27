@@ -39,7 +39,6 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             binding.reminderDataItem = reminder
             binding.buttonDelete.setOnClickListener {
                 _viewModel.deleteReminder(reminder.id)
-                //TODO: delete geofence
                 finish()
             }
         }

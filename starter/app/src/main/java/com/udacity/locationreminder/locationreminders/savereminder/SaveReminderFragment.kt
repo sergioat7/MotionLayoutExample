@@ -86,7 +86,6 @@ class SaveReminderFragment : BaseFragment() {
             )
 
             if (_viewModel.validateEnteredData(reminder)) {
-                _viewModel.saveReminder(reminder)
                 addGeofenceForReminder(reminder)
             }
         }
@@ -117,14 +116,16 @@ class SaveReminderFragment : BaseFragment() {
             .addGeofence(geofence)
             .build()
 
-        geofencingClient.removeGeofences(geofencePendingIntent)?.run {
+        geofencingClient.removeGeofences(geofencePendingIntent).run {
             addOnCompleteListener {
-                geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
+                geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent).run {
                     addOnSuccessListener {
                         Log.i(this@SaveReminderFragment.javaClass.name, "Geofence created")
+                        _viewModel.saveReminder(reminder)
                     }
                     addOnFailureListener {
                         Log.e(this@SaveReminderFragment.javaClass.name, "Geofence not created")
+                        _viewModel.showErrorMessage.value = getString(R.string.geofences_not_added)
                     }
                 }
             }
