@@ -7,12 +7,14 @@ import com.udacity.locationreminder.base.BaseViewModel
 import com.udacity.locationreminder.locationreminders.data.ReminderDataSource
 import com.udacity.locationreminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.locationreminder.locationreminders.data.dto.Result
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class RemindersListViewModel(
     app: Application,
-    private val dataSource: ReminderDataSource
+    private val dataSource: ReminderDataSource,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : BaseViewModel(app) {
     // list that holds the reminder data to be displayed on the UI
     val remindersList = MutableLiveData<List<ReminderDataItem>>()
@@ -53,7 +55,7 @@ class RemindersListViewModel(
     }
 
     fun deleteAllReminders() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             dataSource.deleteAllReminders()
         }
     }
