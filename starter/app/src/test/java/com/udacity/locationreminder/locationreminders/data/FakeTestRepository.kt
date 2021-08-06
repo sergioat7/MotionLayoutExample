@@ -1,8 +1,6 @@
 package com.udacity.locationreminder.locationreminders.data
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
 import com.udacity.locationreminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.locationreminder.locationreminders.data.dto.Result
 import kotlinx.coroutines.runBlocking
@@ -19,30 +17,8 @@ class FakeTestRepository : ReminderDataSource {
         shouldReturnError = value
     }
 
-    suspend fun refreshReminders() {
+    private suspend fun refreshReminders() {
         observableReminders.value = getReminders()
-    }
-
-    fun observeReminders(): LiveData<Result<List<ReminderDTO>>> {
-        runBlocking {
-            refreshReminders()
-        }
-        return observableReminders
-    }
-
-    fun observeReminder(reminderId: String): LiveData<Result<ReminderDTO>> {
-        runBlocking { refreshReminders() }
-        return observableReminders.map { reminders ->
-            when (reminders) {
-                is Result.Error -> Result.Error(reminders.message)
-                is Result.Success -> {
-                    val reminder = reminders.data.firstOrNull() {
-                        it.id == reminderId
-                    } ?: return@map Result.Error("Not found")
-                    Result.Success(reminder)
-                }
-            }
-        }
     }
 
     override suspend fun getReminders(): Result<List<ReminderDTO>> {
