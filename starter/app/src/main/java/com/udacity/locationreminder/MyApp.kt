@@ -25,7 +25,7 @@ class MyApp : Application() {
             viewModel {
                 RemindersListViewModel(
                     get(),
-                    get() as RemindersLocalRepository
+                    get() as ReminderDataSource
                 )
             }
             viewModel {
@@ -42,7 +42,7 @@ class MyApp : Application() {
                     get() as ReminderDataSource
                 )
             }
-            single { RemindersLocalRepository(get()) }
+            single { RemindersLocalRepository(get()) as ReminderDataSource }//DO NOT remove the cast
             single { LocalDB.createRemindersDao(this@MyApp) }
         }
 
