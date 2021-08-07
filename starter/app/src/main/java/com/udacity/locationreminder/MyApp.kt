@@ -25,7 +25,7 @@ class MyApp : Application() {
             viewModel {
                 RemindersListViewModel(
                     get(),
-                    get() as ReminderDataSource
+                    get() as RemindersLocalRepository
                 )
             }
             viewModel {
