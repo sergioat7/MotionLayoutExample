@@ -8,7 +8,7 @@ import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.locationreminder.MyApp
 import com.udacity.locationreminder.R
 import com.udacity.locationreminder.locationreminders.MainCoroutineRule
-import com.udacity.locationreminder.locationreminders.data.FakeTestRepository
+import com.udacity.locationreminder.locationreminders.data.FakeDataSource
 import com.udacity.locationreminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.locationreminder.locationreminders.getOrAwaitValue
 import com.udacity.locationreminder.locationreminders.reminderslist.ReminderDataItem
@@ -29,7 +29,7 @@ class SaveReminderViewModelTest {
     // Subject under test
     private lateinit var saveReminderViewModel: SaveReminderViewModel
 
-    private lateinit var fakeRepository: FakeTestRepository
+    private lateinit var fakeDataSource: FakeDataSource
 
     // Executes each task synchronously using Architecture Components.
     @get:Rule
@@ -43,10 +43,10 @@ class SaveReminderViewModelTest {
     @Before
     fun setupViewModel() {
 
-        fakeRepository = FakeTestRepository()
+        fakeDataSource = FakeDataSource(mutableListOf())
         saveReminderViewModel = SaveReminderViewModel(
             ApplicationProvider.getApplicationContext<MyApp>(),
-            fakeRepository
+            fakeDataSource
         )
     }
 
@@ -131,14 +131,14 @@ class SaveReminderViewModelTest {
         saveReminderViewModel.saveReminder(newReminder)
 
         // THEN - There must be one reminder
-        assertThat(fakeRepository.remindersServiceData.values.size, equalTo(1))
+        assertThat(fakeDataSource.reminders.size, equalTo(1))
     }
 
     @Test
     fun saveReminderWithANonEmptyDatabase() {
         // GIVEN - A reminder stored in the database
         val reminder = ReminderDTO("Title", "Description", "Location", 37.0, -122.0)
-        fakeRepository.addReminders(reminder)
+        fakeDataSource.addReminders(reminder)
 
         // WHEN - Save a reminder
         val newReminder =
@@ -146,7 +146,7 @@ class SaveReminderViewModelTest {
         saveReminderViewModel.saveReminder(newReminder)
 
         // THEN - There must be two reminders
-        assertThat(fakeRepository.remindersServiceData.values.size, equalTo(2))
+        assertThat(fakeDataSource.reminders.size, equalTo(2))
     }
 
     @Test

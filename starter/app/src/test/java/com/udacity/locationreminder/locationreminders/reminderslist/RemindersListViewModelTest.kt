@@ -5,7 +5,7 @@ import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.locationreminder.MyApp
 import com.udacity.locationreminder.locationreminders.MainCoroutineRule
-import com.udacity.locationreminder.locationreminders.data.FakeTestRepository
+import com.udacity.locationreminder.locationreminders.data.FakeDataSource
 import com.udacity.locationreminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.locationreminder.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +27,7 @@ class RemindersListViewModelTest {
     // Subject under test
     private lateinit var remindersListViewModel: RemindersListViewModel
 
-    private lateinit var fakeRepository: FakeTestRepository
+    private lateinit var fakeDataSource: FakeDataSource
 
     // Executes each task synchronously using Architecture Components.
     @get:Rule
@@ -45,10 +45,9 @@ class RemindersListViewModelTest {
         val reminder2 = ReminderDTO("Title 2", "Description 2", "Location 2", 37.0, -122.0)
         val reminder3 = ReminderDTO("Title 3", "Description 3", "Location 3", 37.0, -122.0)
 
-        fakeRepository = FakeTestRepository()
-        fakeRepository.addReminders(reminder1, reminder2, reminder3)
+        fakeDataSource = FakeDataSource(mutableListOf(reminder1, reminder2, reminder3))
         remindersListViewModel =
-            RemindersListViewModel(getApplicationContext<MyApp>(), fakeRepository, Dispatchers.Main)
+            RemindersListViewModel(getApplicationContext<MyApp>(), fakeDataSource, Dispatchers.Main)
     }
 
     @After
@@ -110,7 +109,7 @@ class RemindersListViewModelTest {
     @Test
     fun loadRemindersAndCheckShowSnackBar() {
         // GIVEN - Repository in a error state
-        fakeRepository.setReturnError(true)
+        fakeDataSource.setReturnError(true)
 
         // WHEN - Load all reminders
         remindersListViewModel.loadReminders()
