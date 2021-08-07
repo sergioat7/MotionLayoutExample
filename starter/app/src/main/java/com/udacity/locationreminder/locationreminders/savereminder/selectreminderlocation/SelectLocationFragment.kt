@@ -106,6 +106,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+
+        map.setOnMapLongClickListener {
+            val poiMarker = map.addMarker(
+                MarkerOptions()
+                    .position(it)
+                    .title("Custom marker")
+            )
+            poiMarker?.showInfoWindow()
+            selectedPoi = PointOfInterest(it, "customMarker_${it.toString()}", "Custom marker")
+        }
     }
 
     override fun onRequestPermissionsResult(
