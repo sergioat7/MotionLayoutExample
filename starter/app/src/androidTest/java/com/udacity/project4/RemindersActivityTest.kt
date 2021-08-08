@@ -1,5 +1,6 @@
 package com.udacity.project4
 
+import android.app.Activity
 import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ActivityScenario
@@ -9,6 +10,7 @@ import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -26,6 +28,8 @@ import com.udacity.project4.util.monitorActivity
 import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -138,6 +142,7 @@ class RemindersActivityTest :
 
         // Save reminder and verify has been created
         onView(withId(R.id.saveReminder)).perform(click())
+        onView(withText("Reminder Saved !")).inRoot(withDecorView(not(`is`(getActivity(activityScenario)?.window?.decorView)))).check(matches(isDisplayed()))
         onView(withText("Title")).check(matches(isDisplayed()))
 
         // Make sure the activity is closed before resetting the db
@@ -186,6 +191,7 @@ class RemindersActivityTest :
 
         // Save reminder and verify has been created
         onView(withId(R.id.saveReminder)).perform(click())
+        onView(withText("Reminder Saved !")).inRoot(withDecorView(not(`is`(getActivity(activityScenario)?.window?.decorView)))).check(matches(isDisplayed()))
         onView(withText("Title")).check(matches(isDisplayed()))
 
         // Click on the new reminder on the list and verify that all the data is correct
@@ -199,5 +205,14 @@ class RemindersActivityTest :
 
         // Make sure the activity is closed before resetting the db
         activityScenario.close()
+    }
+
+    // get activity context
+    private fun getActivity(activityScenario: ActivityScenario<RemindersActivity>): Activity? {
+        var activity: Activity? = null
+        activityScenario.onActivity {
+            activity = it
+        }
+        return activity
     }
 }
