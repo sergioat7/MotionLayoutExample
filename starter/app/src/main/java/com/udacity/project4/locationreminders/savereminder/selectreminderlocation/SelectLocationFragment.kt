@@ -2,20 +2,21 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -39,8 +40,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
-    private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
-    private var currentLocation: Location? = null
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var selectedPoi: PointOfInterest? = null
 
     override fun onCreateView(
@@ -55,11 +55,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
 
+        fusedLocationClient =
+            LocationServices.getFusedLocationProviderClient(this.requireActivity())
+
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
-
-        mFusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(this.requireActivity())
 
         binding.buttonSave.setOnClickListener {
             onLocationSelected()
@@ -72,10 +72,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
-        if (foregroundLocationPermissionApproved()) {
-            getLocation()
-        }
-        enableMyLocation()
+
+        locateUser()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -105,18 +103,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
-        map.setOnPoiClickListener { poi ->
-            val poiMarker = map.addMarker(
-                MarkerOptions()
-                    .position(poi.latLng)
-                    .title(poi.name)
-            )
-            poiMarker?.showInfoWindow()
-            selectedPoi = poi
-        }
-
-        enableMyLocation()
-
         try {
             // Customize the styling of the base map using a JSON object defined
             // in a raw resource file.
@@ -130,6 +116,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             e.printStackTrace()
         }
 
+        map.setOnPoiClickListener { poi ->
+            val poiMarker = map.addMarker(
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
+            )
+            poiMarker?.showInfoWindow()
+            selectedPoi = poi
+        }
+
         map.setOnMapLongClickListener {
             val poiMarker = map.addMarker(
                 MarkerOptions()
@@ -140,10 +136,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             selectedPoi = PointOfInterest(it, "customMarker_$it", "Custom marker")
         }
 
-        if (foregroundLocationPermissionApproved()) {
-            getLocation()
-        } else {
-            requestForegroundLocationPermissions()
+        if (foregroundLocationPermissionApproved() && isLocationEnabled()) {
+            getUserLocation()
         }
     }
 
@@ -154,10 +148,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     ) {
         Log.d(TAG, "onRequestPermissionResult")
 
-        if (
-            grantResults.isEmpty() ||
-            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED
-        ) {
+        if (grantResults.isEmpty() || grantResults[0] == PackageManager.PERMISSION_DENIED) {
             Snackbar.make(
                 binding.root,
                 R.string.permission_denied_explanation,
@@ -171,26 +162,91 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     })
                 }.show()
         } else {
-            if (foregroundLocationPermissionApproved()) {
-                getLocation()
-            } else {
-                requestForegroundLocationPermissions()
+            locateUser()
+        }
+    }
+
+    private fun foregroundLocationPermissionApproved(): Boolean {
+
+        return ActivityCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun isLocationEnabled(): Boolean {
+
+        val locationManager =
+            ContextCompat.getSystemService(requireContext(), LocationManager::class.java)
+        if (locationManager != null) {
+            return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                    locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        }
+        return false
+    }
+
+    private fun requestForegroundLocationPermissions() {
+        if (foregroundLocationPermissionApproved()) return
+        Log.d(TAG, "Request foreground only location permission")
+
+        ActivityCompat.requestPermissions(
+            requireActivity(),
+            arrayOf(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ),
+            REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
+        )
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun getUserLocation() {
+        fusedLocationClient.lastLocation.addOnSuccessListener {
+
+            it?.let {
+                map.isMyLocationEnabled = true
+                map.moveCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            it.latitude,
+                            it.longitude
+                        ), 10F
+                    )
+                )
+            } ?: run {
+                requestNewLocationData()
             }
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private fun enableMyLocation() {
+    @SuppressLint("MissingPermission", "RestrictedApi")
+    private fun requestNewLocationData() {
 
-        if (!this::map.isInitialized) {
-            return
-        } else if (foregroundLocationPermissionApproved()) {
-            map.isMyLocationEnabled = true
-        } else {
-            map.isMyLocationEnabled = false
-            map.uiSettings.isMyLocationButtonEnabled = false
-            currentLocation = null
-        }
+        val mLocationRequest = LocationRequest()
+        mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        mLocationRequest.interval = 0
+        mLocationRequest.fastestInterval = 0
+        mLocationRequest.numUpdates = 1
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        fusedLocationClient.requestLocationUpdates(mLocationRequest, object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+
+                map.isMyLocationEnabled = true
+                val lastLocation: Location = locationResult.lastLocation
+                map.moveCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            lastLocation.latitude,
+                            lastLocation.longitude
+                        ), 10F
+                    )
+                )
+            }
+        }, Looper.myLooper())
     }
 
     private fun onLocationSelected() {
@@ -203,56 +259,24 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
-    @TargetApi(29)
-    private fun requestForegroundLocationPermissions() {
-        if (foregroundLocationPermissionApproved())
-            return
-        Log.d(TAG, "Request foreground only location permission")
-        requestPermissions(
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-            REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
-        )
-    }
+    private fun locateUser() {
 
-    @TargetApi(29)
-    private fun foregroundLocationPermissionApproved(): Boolean {
-        return (
-                PackageManager.PERMISSION_GRANTED ==
-                        ActivityCompat.checkSelfPermission(
-                            requireContext(),
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ))
-    }
-
-    private fun getLocation() {
-        try {
-            if (foregroundLocationPermissionApproved()) {
-                val locationResult = mFusedLocationProviderClient.lastLocation
-                locationResult.addOnCompleteListener(this.requireActivity()) { task ->
-                    if (task.isSuccessful) {
-                        currentLocation = task.result
-                        currentLocation?.let {
-                            map.moveCamera(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(
-                                        it.latitude,
-                                        it.longitude
-                                    ), 10F
-                                )
-                            )
-                        }
-                    } else {
-                        Log.e(TAG, "Exception: %s", task.exception)
-                        map.uiSettings.isMyLocationButtonEnabled = false
-                    }
-                }
+        if (foregroundLocationPermissionApproved()) {
+            if (isLocationEnabled()) {
+                getUserLocation()
+            } else {
+                Snackbar.make(
+                    binding.root,
+                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }.show()
             }
-        } catch (e: SecurityException) {
-            Log.e("Exception: %s", e.message, e)
+        } else {
+            requestForegroundLocationPermissions()
         }
     }
 }
 
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val TAG = "SelectLocationFragment"
-private const val LOCATION_PERMISSION_INDEX = 0
