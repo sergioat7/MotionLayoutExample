@@ -52,28 +52,33 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     }
 
     private fun sendNotification(triggeringGeofences: List<Geofence>) {
-        triggeringGeofences.firstOrNull()?.requestId?.let { requestId ->
 
-            //Get the local repository instance
-            val remindersLocalRepository: ReminderDataSource by inject()
-//        Interaction to the repository has to be through a coroutine scope
-            CoroutineScope(coroutineContext).launch(SupervisorJob()) {
+        val remindersToNotify = mutableListOf<ReminderDTO>()
+        //Get the local repository instance
+        val remindersLocalRepository: ReminderDataSource by inject()
+        // Interaction to the repository has to be through a coroutine scope
+        CoroutineScope(coroutineContext).launch(SupervisorJob()) {
+
+            for (triggeringGeofence in triggeringGeofences) {
                 //get the reminder with the request id
-                val result = remindersLocalRepository.getReminder(requestId)
+                val result = remindersLocalRepository.getReminder(triggeringGeofence.requestId)
                 if (result is Result.Success<ReminderDTO>) {
-                    val reminderDTO = result.data
-                    //send a notification to the user with the reminder details
-                    sendNotification(
-                        this@GeofenceTransitionsJobIntentService, ReminderDataItem(
-                            reminderDTO.title,
-                            reminderDTO.description,
-                            reminderDTO.location,
-                            reminderDTO.latitude,
-                            reminderDTO.longitude,
-                            reminderDTO.id
-                        )
-                    )
+                    remindersToNotify.add(result.data)
                 }
+            }
+
+            for (reminder in remindersToNotify) {
+                //send a notification to the user with the reminder details
+                sendNotification(
+                    this@GeofenceTransitionsJobIntentService, ReminderDataItem(
+                        reminder.title,
+                        reminder.description,
+                        reminder.location,
+                        reminder.latitude,
+                        reminder.longitude,
+                        reminder.id
+                    )
+                )
             }
         }
     }
