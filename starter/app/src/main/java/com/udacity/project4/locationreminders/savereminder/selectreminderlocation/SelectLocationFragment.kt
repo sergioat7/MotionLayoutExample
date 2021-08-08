@@ -42,8 +42,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
     private var currentLocation: Location? = null
     private var selectedPoi: PointOfInterest? = null
-    private val runningQOrLater =
-        android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -67,14 +65,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             onLocationSelected()
         }
 
-        requestForegroundAndBackgroundLocationPermissions()
+        requestForegroundLocationPermissions()
 
         return binding.root
     }
 
     override fun onResume() {
         super.onResume()
-        if (foregroundAndBackgroundLocationPermissionApproved()) {
+        if (foregroundLocationPermissionApproved()) {
             getLocation()
         }
         enableMyLocation()
@@ -142,10 +140,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             selectedPoi = PointOfInterest(it, "customMarker_$it", "Custom marker")
         }
 
-        if (foregroundAndBackgroundLocationPermissionApproved()) {
+        if (foregroundLocationPermissionApproved()) {
             getLocation()
         } else {
-            requestForegroundAndBackgroundLocationPermissions()
+            requestForegroundLocationPermissions()
         }
     }
 
@@ -158,10 +156,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         if (
             grantResults.isEmpty() ||
-            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
-            (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
-                    grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
-                    PackageManager.PERMISSION_DENIED)
+            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED
         ) {
             Snackbar.make(
                 binding.root,
@@ -176,10 +171,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     })
                 }.show()
         } else {
-            if (foregroundAndBackgroundLocationPermissionApproved()) {
+            if (foregroundLocationPermissionApproved()) {
                 getLocation()
             } else {
-                requestForegroundAndBackgroundLocationPermissions()
+                requestForegroundLocationPermissions()
             }
         }
     }
@@ -189,7 +184,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         if (!this::map.isInitialized) {
             return
-        } else if (foregroundAndBackgroundLocationPermissionApproved()) {
+        } else if (foregroundLocationPermissionApproved()) {
             map.isMyLocationEnabled = true
         } else {
             map.isMyLocationEnabled = false
@@ -209,47 +204,29 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     @TargetApi(29)
-    private fun requestForegroundAndBackgroundLocationPermissions() {
-        if (foregroundAndBackgroundLocationPermissionApproved())
+    private fun requestForegroundLocationPermissions() {
+        if (foregroundLocationPermissionApproved())
             return
-        var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        val resultCode = when {
-            runningQOrLater -> {
-                permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-            }
-            else -> REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
-        }
         Log.d(TAG, "Request foreground only location permission")
         requestPermissions(
-            permissionsArray,
-            resultCode
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
         )
     }
 
     @TargetApi(29)
-    private fun foregroundAndBackgroundLocationPermissionApproved(): Boolean {
-        val foregroundLocationApproved = (
+    private fun foregroundLocationPermissionApproved(): Boolean {
+        return (
                 PackageManager.PERMISSION_GRANTED ==
                         ActivityCompat.checkSelfPermission(
-                            this.requireContext(),
+                            requireContext(),
                             Manifest.permission.ACCESS_FINE_LOCATION
                         ))
-        val backgroundPermissionApproved =
-            if (runningQOrLater) {
-                PackageManager.PERMISSION_GRANTED ==
-                        ActivityCompat.checkSelfPermission(
-                            this.requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                        )
-            } else {
-                true
-            }
-        return foregroundLocationApproved && backgroundPermissionApproved
     }
 
     private fun getLocation() {
         try {
-            if (foregroundAndBackgroundLocationPermissionApproved()) {
+            if (foregroundLocationPermissionApproved()) {
                 val locationResult = mFusedLocationProviderClient.lastLocation
                 locationResult.addOnCompleteListener(this.requireActivity()) { task ->
                     if (task.isSuccessful) {
@@ -276,8 +253,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 }
 
-private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val TAG = "SelectLocationFragment"
 private const val LOCATION_PERMISSION_INDEX = 0
-private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
